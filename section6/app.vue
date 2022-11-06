@@ -1,5 +1,11 @@
+<script setup lang="ts">
+import useDarkMode from '@/composables/useDarkMode';
+
+const { isDarkMode } = useDarkMode();
+</script>
+
 <template>
-  <div>
+  <div :style="isDarkMode ? { backgroundColor: 'black' } : null">
     <Nav />
     <Heading />
     <Cards />
