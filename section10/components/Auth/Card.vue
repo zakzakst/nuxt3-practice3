@@ -1,22 +1,54 @@
 <script setup lang="ts">
 const authState = ref<'login' | 'signup'>('login');
+const authError = ref('');
+const showConfirmEmailMessage = ref(false);
+const input = reactive({
+  password: '',
+  email: ''
+})
+const router = useRouter()
+
+const {signUp, signIn, user, signOut} = useAuth()
 
 const toggleAuthState = () => {
   if (authState.value === 'login') authState.value = 'signup';
   else authState.value = 'login';
+}
+
+const handleSubmit = async () => {
+  try {
+    if (authState.value === 'login') {
+      await signIn({email: input.email, password: input.password})
+      router.push('/profile')
+    } else {
+      await signUp({email: input.email, password: input.password})
+      showConfirmEmailMessage.value = true
+    }
+    input.email = ''
+    input.password = ''
+  } catch(err) {
+    authError.value = err.message
+  }
 }
 </script>
 
 <template>
   <div>
     <NCard class="card">
-      <h3>{{ authState }}</h3>
-      <div class="input-container">
-        <input type="text" placeholder="Email" />
-        <input type="text" placeholder="Password" />
+      <div v-if="!showConfirmEmailMessage">
+        <h3>{{ authState }}</h3>
+        <div class="input-container">
+          <input type="text" placeholder="Email" v-model="input.email" />
+          <input type="password" placeholder="Password" v-model="input.password" />
+        </div>
+        <NButton @click="handleSubmit">Submit</NButton>
+        <NButton @click="signOut">Logout</NButton>
+        <p class="error" v-if="authError">{{authError}}</p>
+        <p @click="toggleAuthState">{{ authState === 'login' ? 'Don\'t have an account? Create one now' : 'Already have an account? Go ahead an login' }}</p>
       </div>
-      <NButton>Submit</NButton>
-      <p @click="toggleAuthState">{{ authState === 'login' ? 'Don\'t have an account? Create one now' : 'Already have an account? Go ahead an login' }}</p>
+      <div v-else>
+        <h3>Check email for confirm message</h3>
+      </div>
     </NCard>
   </div>
 </template>
@@ -45,5 +77,8 @@ p {
   color: blue;
   font-size: 0.5rem;
   cursor: pointer;
+}
+.error {
+  color: red;
 }
 </style>
